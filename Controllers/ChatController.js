@@ -1,48 +1,57 @@
-import ChatModel from "../Models/chatModel.js";
+import Chat from "../Models/chatModel.js";
 
+class allChats {
+  constructor() {}
 
-class Chatclass{
-    constructor(){
+  static deleteAllChats = async (req, res) => {
 
+    const { room } = req.params;
+    try {
+        const result = await Chat.deleteMany({ room });
+        res.status(200).json({ message: "Chats deleted successfully", result });
+    } catch (error) {
+        res.status(500).json({ message: "Error deleting chats", error });
     }
+   
+  };
 
-     static createChat =  async(req , res)=>{
-        const newChat = new ChatModel({
-            members: [req.body.senderId, req.body.receiverId],
-          });
-          try {
-            const result = await newChat.save();
-            res.status(200).json(result);
-          } catch (error) {
-            res.status(500).json(error);
-          }
-
+   static deletSingleChat = async (req, res) => {
+    const { id } = req.params;
+  
+    try {
+      const result = await Chat.findByIdAndDelete(id);
+      if (result) {
+        res.json({ success: true, message: "Delete successful" });
+      } else {
+        res.status(404).json({ success: false, message: "Chat not found" });
+      }
+    } catch (error) {
+      console.error("Error deleting chat:", error);
+      res.status(500).json({ success: false, message: "Internal server error" });
     }
+  };
 
-    static userChat = async(req ,res)=>{
-        try {
-            const chat = await ChatModel.find({
-              members: { $in: [req.params.userId] },
-            });
-            res.status(200).json(chat);
-          } catch (error) {
-            res.status(500).json(error);
-          }
+  static savechat = async(req , res)=>{
+    const { username, message, avatar, room } = req.body;
 
-    }
+  try {
+    const newChat = new Chat({
+      username,
+      message,
+      avatar,
+      room,
+    });
+    
+    const savedChat = await newChat.save();
+    res.json(savedChat);
+  } catch (error) {
+    console.error("Error saving message:", error);
+    res.status(500).json({ error: "Failed to save message" });
+  }
 
-    static findChat = async(req ,res)=>{
-        try {
-            const chat = await ChatModel.findOne({
-              members: { $all: [req.params.firstId, req.params.secondId] },
-            });
-            res.status(200).json(chat)
-          } catch (error) {
-            res.status(500).json(error)
-          }
-
-    }
+  }
+  
 }
 
 
-export default Chatclass
+export default allChats
